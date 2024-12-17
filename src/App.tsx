@@ -1,33 +1,38 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { useMemo, useState } from 'react'
 import './App.css'
+import JsonFileImporter from './components/JsonImporter'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [base, setBase] = useState<object | undefined>()
+  const [child, setChild] = useState<object | undefined>()
+
+  const Missingkeys = useMemo(() => {
+    if (!child) return []
+    const results = []
+
+    for(const i in base) {
+      const _child = child[i as keyof typeof child] || undefined
+      if (_child === undefined) {
+        results.push({ key: i, base: base[i as keyof typeof base]})
+      }
+    }
+    return results
+  }, [base, child])
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+    <div className='flex'>
+      <JsonFileImporter onChange={setBase} />
+      <JsonFileImporter onChange={(setChild)} />
+
+      <p>Missing keys: {Missingkeys.length}</p>
+      <table>
+        {Missingkeys.map(x => <tr>
+          <td>{x.key}</td>
+          <td>{x.base}</td>
+        </tr>)}
+      </table>
+    </div>
     </>
   )
 }
